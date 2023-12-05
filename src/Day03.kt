@@ -9,7 +9,7 @@ fun main() {
     solvePartTwo()
 }
 
-fun solvePartOne() {
+private fun solvePartOne() {
     val numbers = findNumbers()
     val symbols = findSymbols(Regex("[^\\d.]"))
 
@@ -20,7 +20,7 @@ fun solvePartOne() {
     println("Sum is $sum")
 }
 
-fun solvePartTwo() {
+private fun solvePartTwo() {
     val numbers = findNumbers()
     val symbols = findSymbols(Regex("\\*"))
 
@@ -35,17 +35,17 @@ fun solvePartTwo() {
 }
 
 // The list must be exactly of length 2!
-fun <T> List<T>.asPair() =
+private fun <T> List<T>.asPair() =
     takeIf { it.size == 2 }?.run { get(0) to get(1) }
 
-fun findSymbols(regex: Regex): Sequence<Vector> =
+private fun findSymbols(regex: Regex): Sequence<Vector> =
     regex.findAll(schematic).map { Vector(it.range.first) }
 
 // Must be the positions first, because each number can appear multiple times.
-fun findNumbers(): Map<List<Vector>, String> =
+private fun findNumbers(): Map<List<Vector>, String> =
     Regex("\\d+").findAll(schematic).associate { it.range.map(::Vector) to it.value }
 
-infix fun Iterable<Vector>.touch(position: Vector): Boolean =
+private infix fun Iterable<Vector>.touch(position: Vector): Boolean =
     any { (it - position).amount <= sqrt(2.0) }
 
 data class Vector(val x: Int, val y: Int) {

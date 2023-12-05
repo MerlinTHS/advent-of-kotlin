@@ -1,16 +1,28 @@
-val almanac = readLines("Day05").joinToString("\n")
+private val almanac = readLines("Day05").joinToString("\n")
 
-fun main() = with(almanac) {
-    val location = seeds.minOf { seed ->
-        seedMappings.fold(seed) { source, mappings ->
-            mappings.firstNotNullOfOrNull { it[source] } ?: source
-        }
-    }
+fun main() {
+    partOne()
+    partTwo()
+}
+
+private fun partOne() {
+    val location = almanac.seeds.minOf { locationOf(it) }
+    println("Nearest location is $location")
+}
+
+private fun partTwo() {
+    val location = almanac.seeds.asRanges()
+        .minOf { seeds -> seeds.minOf { locationOf(it) } }
 
     println("Nearest location is $location")
 }
 
-data class RangeMapping(val source: Long, val target: Long, val length: Long) {
+fun locationOf(seed: Long): Long =
+    almanac.seedMappings.fold(seed) { source, mappings ->
+        mappings.firstNotNullOfOrNull { it[source] } ?: source
+    }
+
+private data class RangeMapping(val source: Long, val target: Long, val length: Long) {
     operator fun contains(value: Long): Boolean =
         value in source..(source + length)
 
@@ -18,24 +30,20 @@ data class RangeMapping(val source: Long, val target: Long, val length: Long) {
         (target + value - source).takeIf { value in this }
 }
 
-val String.seedMappings get() =
-    blocks.map { it.numbers.toRangeMappings() }
+private val String.seedMappings get() =
+    blocks.map { it.numbers.asRangeMappings() }
 
-fun List<Long>.toRangeMappings(): List<RangeMapping> = buildList {
-    for (i in this@toRangeMappings.indices step 3) {
-        add(RangeMapping(
-            target = this@toRangeMappings[i],
-            source = this@toRangeMappings[i+1],
-            length = this@toRangeMappings[i+2]
-        ))
-    }
-}
+private fun List<Long>.asRangeMappings(): List<RangeMapping> =
+    chunked(3) { RangeMapping(target = it[0], source = it[1], length = it[2]) }
 
-val String.seeds: List<Long> get() =
+private fun List<Long>.asRanges(): List<LongRange> =
+    chunked(2) { it[0]..it[0]+it[1] }
+
+private val String.seeds: List<Long> get() =
     find(Regex("seeds: (\\d+\\s+)+"))?.numbers.orEmpty()
 
-val String.blocks: List<String> get() =
+private val String.blocks: List<String> get() =
     collect(Regex("(?<=map:)[\\d\\s]+"))
 
-val String.numbers: List<Long> get() =
+private val String.numbers: List<Long> get() =
     collect(Regex("\\d+")).map { it.toLong() }

@@ -7,12 +7,12 @@ fun main() {
     partTwo()
 }
 
-fun partOne() {
+private fun partOne() {
     val totalPoints = scratchcards.sumOf { it.correctNumbers.points }
     println("Total points: $totalPoints")
 }
 
-fun partTwo() {
+private fun partTwo() {
     val correctNumbers = scratchcards.map { it.correctNumbers }
     val copies = MutableList(correctNumbers.size) { 1 }
 
@@ -27,17 +27,17 @@ fun partTwo() {
     println("Total cards: ${copies.sum()}")
 }
 
-val String.correctNumbers: Int get() =
+private val String.correctNumbers: Int get() =
     givenNumbers.intersect(winningNumbers).size
 
-val Int.points: Int get() =
+private val Int.points: Int get() =
     (2.0.pow(this) / 2).toInt()
 
-val String.givenNumbers get() =
+private val String.givenNumbers get() =
     Regex("(?<=\\|).*\$").find(this)?.numbers.orEmpty()
 
-val String.winningNumbers get() =
+private val String.winningNumbers get() =
     Regex("(?<=:)(.*)(?=\\|)").find(this)?.numbers.orEmpty()
 
-val MatchResult.numbers: Set<Int> get() =
+private val MatchResult.numbers: Set<Int> get() =
     Regex("\\d+").findAll(value).map { it.value.toInt() }.toSet()
