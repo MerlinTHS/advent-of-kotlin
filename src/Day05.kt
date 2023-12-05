@@ -1,41 +1,41 @@
-val demo = readLines("Day05_Demo").joinToString("\n")
+val almanac = readLines("Day05").joinToString("\n")
 
-fun main() = with(demo) {
+fun main() = with(almanac) {
     val location = seeds.minOf { seed ->
-        seedMappings.fold(seed) { current, mappings -> mappings[current] ?: current }
+        seedMappings.fold(seed) { source, mappings ->
+            mappings.firstNotNullOfOrNull { it[source] } ?: source
+        }
     }
 
     println("Nearest location is $location")
 }
 
-data class Mapping(val source: Long, val target: Long, val length: Int)
+data class RangeMapping(val source: Long, val target: Long, val length: Long) {
+    operator fun contains(value: Long): Boolean =
+        value in source..(source + length)
 
-val String.seedMappings: List<Map<Long, Long>>
-    get() = blocks
-        .map { it.numbers.toRangesMappings() }
-        .map { normalize(it) }
+    operator fun get(value: Long): Long? =
+        (target + value - source).takeIf { value in this }
+}
 
-fun List<Long>.toRangesMappings(): List<Mapping> = buildList {
-    for (i in this@toRangesMappings.indices step 3) {
-        add(Mapping(
-            target = this@toRangesMappings[i],
-            source = this@toRangesMappings[i+1],
-            length = this@toRangesMappings[i+2].toInt()
+val String.seedMappings get() =
+    blocks.map { it.numbers.toRangeMappings() }
+
+fun List<Long>.toRangeMappings(): List<RangeMapping> = buildList {
+    for (i in this@toRangeMappings.indices step 3) {
+        add(RangeMapping(
+            target = this@toRangeMappings[i],
+            source = this@toRangeMappings[i+1],
+            length = this@toRangeMappings[i+2]
         ))
     }
 }
 
-/**
- * Converts the range-based mapping into a simple map.
- */
-private fun normalize(mappings: List<Mapping>): Map<Long, Long> =
-    mappings.flatMap { List(it.length) { i -> (it.source + i) to (it.target + i) } }.toMap()
-
-private val String.seeds: List<Long> get() =
+val String.seeds: List<Long> get() =
     find(Regex("seeds: (\\d+\\s+)+"))?.numbers.orEmpty()
 
-private val String.blocks: List<String> get() =
+val String.blocks: List<String> get() =
     collect(Regex("(?<=map:)[\\d\\s]+"))
 
-private val String.numbers: List<Long> get() =
+val String.numbers: List<Long> get() =
     collect(Regex("\\d+")).map { it.toLong() }
