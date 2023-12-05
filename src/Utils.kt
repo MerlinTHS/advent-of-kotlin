@@ -19,3 +19,15 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  * The cleaner shorthand for printing output.
  */
 fun Any?.println() = println(this)
+
+/**
+ * Returns all values that match the given pattern as a list.
+ */
+fun String.collect(pattern: Regex): List<String> =
+    pattern.findAll(this).map { it.value }.toList()
+
+/**
+ * Returns the first value that matches the given pattern or null.
+ */
+fun String.find(pattern: Regex): String? =
+    collect(pattern).firstOrNull()
