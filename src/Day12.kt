@@ -1,52 +1,54 @@
 import kotlin.time.measureTime
 
 fun main() {
-    measureTime { partOne() }.println()
+    listOf(::partOne, ::partTwo).forEach {
+        measureTime(it).println()
+    }
 }
 
 private fun partOne() {
-    val lines = readLines("Day12").map(::Line)
-    val arrangements = lines.sumOf { it.arrangements }
+    val arrangements = readLines("Day12").sumOf { line ->
+        val (pattern, solution) = line.split(" ")
+        pattern.arrangements(solution.numbers)
+    }
 
     println("$arrangements possible arrangements.")
 }
 
-data class Line(
-    val actual: String,
-    val damaged: List<Int>
-)
+operator fun <T> List<T>.times(number: Int): List<T> =
+    List(number) { this }.flatten()
 
-fun String.mutations(index: Int): List<String> {
-    if (index > lastIndex) return emptyList()
+private fun partTwo() {
+    val arrangements = readLines("Day12").sumOf { line ->
+        val (pattern, solution) = line.split(" ")
 
-    if (get(index) != '?')
-        return mutations(index +1)
-
-    val operating = replaceRange(index, index+1, ".")
-    val damaged = replaceRange(index, index+1, "#")
-
-    return buildList {
-        add(operating)
-        add(damaged)
-
-        if (substring(index+1).contains('?')) {
-            addAll(operating.mutations(index + 1))
-            addAll(damaged.mutations(index+1))
-        }
+        (listOf(pattern) * 5).joinToString("?")
+            .arrangements(solution.numbers * 5)
     }
+
+    println("$arrangements possible arrangements.")
 }
 
-val Line.arrangements: Int get() =
-    actual.mutations(0)
-        .filterNot { it.contains("?") }
-        .count { it.damaged == damaged }
+fun Boolean.toLong(): Long =
+    if (this) 1L else 0L
 
-val String.damaged: List<Int> get() =
-    collect("#+".toRegex()).map { it.length }
+val cache = mutableMapOf<Pair<String, List<Int>>, Long>()
 
-fun Line(line: String): Line {
-    val (actual, damaged) = line.split(" ")
-    return Line(actual, damaged.numbers)
+fun String.arrangements(solution: List<Int>): Long =
+    cache.getOrPut(this to solution) { sumArrangements(solution) }
+
+private inline fun String.sumArrangements(solution: List<Int>): Long {
+    ifEmpty { return solution.isEmpty().toLong() }
+    if (solution.isEmpty()) return none { it == '#' }.toLong()
+
+    var total = 0L
+    if (first() != '#')
+        total += drop(1).arrangements(solution)
+
+    if (takeWhile { it != '.' }.length >= solution[0] && getOrNull(solution[0]) != '#')
+        total += drop(solution[0]+1).arrangements(solution.drop(1))
+
+    return total
 }
 
 private val String.numbers: List<Int> get() =
